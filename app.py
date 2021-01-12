@@ -17,7 +17,7 @@ DTE = 208.343
 
 TEMP = 81
 
-BACKGROUND_COLOR = 'gray21'
+BACKGROUND_COLOR = 'black'
 TEXT_COLOR = 'white'
 
 
