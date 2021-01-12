@@ -22,7 +22,7 @@ DTE = 208.343
 TEMP = 81
 
 BACKGROUND_COLOR = 'black'
-TEXT_COLOR = 'white'
+TEXT_COLOR = 'gray'
 
 
 def get_fuel_usage():
