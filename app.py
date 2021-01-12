@@ -1,13 +1,17 @@
 #!/bin/env python3
+
+import signal
+import queue
 import random
 import time
+import threading
 
 import setproctitle
 
 import tkinter as tk
 import tkinter.font as tkFont
 
-import signal
+import obd_reader
 
 RESOLUTION = "693x476"
 
@@ -29,9 +33,17 @@ def get_dta():
 
 class Window(tk.Frame):
 
-    def __init__(self, master=None):
+    def __init__(self, master, kueue):
         tk.Frame.__init__(self, master)
         self.master = master
+
+        self.queue = kueue
+
+        self.data = {
+            'current': FUEL_CONSUMPTION,
+            'dte': DTE,
+            'temp': TEMP
+        }
 
         default_font = tkFont.nametofont('TkDefaultFont')
         default_font.configure(size=55, family='Arial')
@@ -64,6 +76,11 @@ class Window(tk.Frame):
 
     def update_current(self):
         self.current.configure(text=get_fuel_usage())
+
+        while not self.queue.empty():
+            for key, value in self.queue.get().items():
+                print("{}: {}".format(key, value))
+
         self.after(1000, self.update_current)
 
     def update_clock(self):
@@ -78,11 +95,17 @@ root = tk.Tk()
 
 root.geometry(RESOLUTION)
 
-app = Window(root)
+kueue = queue.Queue()
+
+app = Window(root, kueue)
 app.configure(bg=BACKGROUND_COLOR)
 
 app.update_clock()
-#app.update_current()
+app.update_current()
+
+
+update_thread = threading.Thread(target=obd_reader.update_loop, args=(kueue,))
+update_thread.start()
 
 def sigint_handler(sig, frame):
     root.quit()
