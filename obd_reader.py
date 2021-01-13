@@ -18,7 +18,7 @@ else:
     connection = obd.OBD()
 
 def get_fuel_usage():
-    maf = connection.query(obd.commands.MAF).to('gallon/hour')
+    maf = connection.query(obd.commands.MAF).value.to('gallon/hour')
     speed = connection.query(obd.commands.SPEED).value
     fuel_rate = maf / FUEL_MIXTURE
 
