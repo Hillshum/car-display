@@ -13,9 +13,9 @@ FUEL_MIXTURE = 14.7
 GASOLINE_DENSITY = 1.335291761 * ureg.centimeter ** 3 / ureg.gram
 
 if os.getenv('CARPI_MOCK'):
-    connection = obd.OBD()
-else:
     connection = None
+else:
+    connection = obd.OBD()
 
 def get_fuel_usage():
     maf = connection.query(obd.commands.MAF).to('gallon/hour')
