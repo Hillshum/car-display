@@ -20,7 +20,9 @@ else:
 
 def get_fuel_usage():
     maf = connection.query(obd.commands.MAF).value.to('gallon/hour')
+    print(maf)
     speed = connection.query(obd.commands.SPEED).value
+    print(speed)
     fuel_rate = maf / FUEL_MIXTURE
 
     fuel_rate_by_volume = fuel_rate * GASOLINE_DENSITY
@@ -62,6 +64,6 @@ def update_loop(queue):
             queue.put(latest_values)
 
             time.sleep(3)
-        except Exception:
-            traceback.print_exc()
+        except Exception as e:
+            print(e)
 
