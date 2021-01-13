@@ -2,6 +2,7 @@
 import os
 import random
 import time
+import traceback
 
 import obd
 import pint
@@ -61,6 +62,6 @@ def update_loop(queue):
             queue.put(latest_values)
 
             time.sleep(3)
-        except Exception as e:
-            print(e)
+        except Exception:
+            traceback.print_exc()
 
