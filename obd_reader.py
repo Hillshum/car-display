@@ -1,17 +1,56 @@
+
+import os
 import random
 import time
 
-def get_fuel_usage():
-    return random.random() * 40 + 10
+import obd
+import pint
 
-def get_dta():
+ureg = pint.UnitRegistry()
+
+FUEL_MIXTURE = 14.7
+
+GASOLINE_DENSITY = 1.335291761 * ureg.centimeter ** 3 / ureg.gram
+
+if os.getenv('CARPI_MOCK'):
+    connection = obd.OBD()
+else:
+    connection = None
+
+def get_fuel_usage():
+    maf = connection.query(obd.commands.MAF).to('gallon/hour')
+    speed = connection.query(obd.commands.SPEED).value
+    fuel_rate = maf / FUEL_MIXTURE
+
+    fuel_rate_by_volume = fuel_rate * GASOLINE_DENSITY
+
+    inverted_fuel_volume = fuel_rate_by_volume ** -1
+
+    distance_per_volume = inverted_fuel_volume * speed
+
+    mpg = distance_per_volume.to('mile/gallon')
+
+    return mpg.value
+
+
+def get_dte():
     return random.random() * 400
 
-def read_obd():
-    current = get_fuel_usage()
-    dta = get_dta()
 
-    return { 'current': current, 'dta': dta}
+def get_mock():
+    return { 
+        'current': random.random() * 40 + 10,
+        'dte':  random.random() * 400,
+    }
+
+def read_obd():
+    if os.getenv('CARPI_MOCK'):
+        return get_mock()
+    
+    current = get_fuel_usage()
+    dta = get_dte()
+
+    return { 'current': current, 'dte': dta}
 
 
 def update_loop(queue):

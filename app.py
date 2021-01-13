@@ -12,6 +12,7 @@ import tkinter as tk
 import tkinter.font as tkFont
 
 import obd_reader
+from format_label import FormatLabel
 
 RESOLUTION = "693x476"
 
@@ -19,17 +20,11 @@ FUEL_CONSUMPTION = 28.400001
 
 DTE = 208.343
 
-TEMP = 81
+TEMP = 81.0
 
 BACKGROUND_COLOR = 'black'
 TEXT_COLOR = 'gray'
 
-
-def get_fuel_usage():
-    return random.random() * 40 + 10
-
-def get_dta():
-    return random.random() * 400
 
 class Window(tk.Frame):
 
@@ -40,9 +35,9 @@ class Window(tk.Frame):
         self.queue = kueue
 
         self.data = {
-            'current': FUEL_CONSUMPTION,
-            'dte': DTE,
-            'temp': TEMP
+            'current': tk.DoubleVar(value=FUEL_CONSUMPTION),
+            'dte': tk.DoubleVar(value=DTE),
+            'temp': tk.DoubleVar(value=TEMP)
         }
 
         default_font = tkFont.nametofont('TkDefaultFont')
@@ -50,7 +45,7 @@ class Window(tk.Frame):
 
         self.master.title("GUI")
         self.master['bg'] = BACKGROUND_COLOR
-        self.time = tk.Label(text="")
+        self.time = FormatLabel(text="")
         self.time['bg'] = BACKGROUND_COLOR
         self.time['fg'] = TEXT_COLOR
         self.time.pack(expand=1)
@@ -58,35 +53,34 @@ class Window(tk.Frame):
         self.fuel = tk.Frame(master, bg=BACKGROUND_COLOR)
 
 
-        self.dta = tk.Label(self.fuel, text="{:.0f} mi".format(DTE), fg=TEXT_COLOR,
-            bg=BACKGROUND_COLOR)
-        self.dta.pack(side=tk.RIGHT, padx=20)
+        self.dte = FormatLabel(self.fuel, textvariable=self.data['dte'], fg=TEXT_COLOR,
+            bg=BACKGROUND_COLOR, format="{:.0f} mi")
+        self.dte.pack(side=tk.RIGHT, padx=20)
 
-        self.current = tk.Label(self.fuel, text="{:.1f} MPG".format(FUEL_CONSUMPTION), fg=TEXT_COLOR,
-            bg=BACKGROUND_COLOR)
+        self.current = FormatLabel(self.fuel, format="{:.1f} MPG", fg=TEXT_COLOR,
+            textvariable=self.data['current'], bg=BACKGROUND_COLOR)
         self.current.pack(side=tk.LEFT, padx=20)
 
         self.fuel.pack(expand=1)
 
-        self.weather = tk.Label(text="{} °F".format(TEMP), bg=BACKGROUND_COLOR,
+        self.weather = FormatLabel(format="{} °F", textvariable=self.data['temp'], bg=BACKGROUND_COLOR,
             fg=TEXT_COLOR)
         self.weather.pack(expand=1)
 
         self.pack(fill=tk.BOTH, expand=1)
 
     def update_current(self):
-        self.current.configure(text=get_fuel_usage())
 
         while not self.queue.empty():
             for key, value in self.queue.get().items():
-                print("{}: {}".format(key, value))
+                self.data[key].set(value)
 
         self.after(1000, self.update_current)
 
     def update_clock(self):
         now = time.strftime("%-H:%M", time.localtime())
         self.time.configure(text=now)
-        self.after(1000, self.update_clock)
+        self.after(500, self.update_clock)
 
 
 setproctitle.setproctitle("carpigui")
