@@ -1,0 +1,1 @@
+scp -r src/ carpi:car-display/ && ssh carpi killall carpigui

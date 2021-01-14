@@ -11,7 +11,7 @@ ureg = pint.UnitRegistry()
 
 FUEL_MIXTURE = 14.7
 
-GASOLINE_DENSITY = 1.335291761 * ureg.centimeter ** 3 / ureg.gram
+GASOLINE_DENSITY = 1.335291761 * obd.Unit.centimeter ** 3 / obd.Unit.gram
 
 if os.getenv('CARPI_MOCK'):
     connection = None
@@ -19,7 +19,7 @@ else:
     connection = obd.OBD()
 
 def get_fuel_usage():
-    maf = connection.query(obd.commands.MAF).value.to('gallon/hour')
+    maf = connection.query(obd.commands.MAF).value
     print(maf)
     speed = connection.query(obd.commands.SPEED).value
     print(speed)
@@ -33,7 +33,7 @@ def get_fuel_usage():
 
     mpg = distance_per_volume.to('mile/gallon')
 
-    return mpg.value
+    return mpg.m
 
 
 def get_dte():
@@ -41,6 +41,7 @@ def get_dte():
 
 
 def get_mock():
+    print('producing mock values')
     return { 
         'current': random.random() * 40 + 10,
         'dte':  random.random() * 400,
@@ -51,6 +52,7 @@ def read_obd():
         return get_mock()
     
     current = get_fuel_usage()
+    print(current)
     dta = get_dte()
 
     return { 'current': current, 'dte': dta}
