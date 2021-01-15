@@ -57,7 +57,7 @@ class Window(tk.Frame):
             bg=BACKGROUND_COLOR, format="{:.0f} mi")
         self.dte.pack(side=tk.RIGHT, padx=20)
 
-        self.current = FormatLabel(self.fuel, format="{:.1f} MPG", fg=TEXT_COLOR,
+        self.current = FormatLabel(self.fuel, format="{:.0f} MPG", fg=TEXT_COLOR,
             textvariable=self.data['current'], bg=BACKGROUND_COLOR)
         self.current.pack(side=tk.LEFT, padx=20)
 
@@ -75,7 +75,7 @@ class Window(tk.Frame):
             for key, value in self.queue.get().items():
                 self.data[key].set(value)
 
-        self.after(1000, self.update_current)
+        self.after(100, self.update_current)
 
     def update_clock(self):
         now = time.strftime("%-H:%M", time.localtime())
