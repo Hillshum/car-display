@@ -14,12 +14,26 @@ TANK_SIZE_GALLONS = 13.2 * obd.Unit.gallon
 
 GASOLINE_DENSITY = 1.335291761 * obd.Unit.centimeter ** 3 / obd.Unit.gram
 
-if os.getenv('CARPI_MOCK'):
-    connection = None
-else:
-    connection = obd.OBD()
+STATIC_MPG = 25 * obd.Unit.mile / obd.Unit.gallon
 
-def get_fuel_usage():
+connection = None
+
+def get_connection():
+  if os.getenv('CARPI_MOCK'):
+    return None
+
+  global connection
+
+  if connection:
+    return connection
+
+
+  connection = obd.OBD()
+
+  return connection
+
+
+def get_fuel_usage(connection):
     maf = connection.query(obd.commands.MAF).value
     print(maf)
     speed = connection.query(obd.commands.SPEED).value
@@ -37,13 +51,13 @@ def get_fuel_usage():
     return mpg
 
 
-def get_dte(current_mpg):
+def get_dte(connection, current_mpg):
     fuel = connection.query(obd.commands.FUEL_LEVEL).value.magnitude
 
     gallons_remaining = fuel * TANK_SIZE_GALLONS
     print(gallons_remaining)
 
-    dte = gallons_remaining * current_mpg / 100
+    dte = gallons_remaining * STATIC_MPG / 100
 
 
     print(dte)
@@ -59,12 +73,13 @@ def get_mock():
     }
 
 def read_obd():
-    if os.getenv('CARPI_MOCK'):
+    connection = get_connection()
+    if connection is None:
         return get_mock()
     
-    current = get_fuel_usage()
+    current = get_fuel_usage(connection)
     print(current)
-    dta = get_dte(current)
+    dta = get_dte(connection, current)
 
     return { 'current': current.m, 'dte': dta.m}
 
@@ -76,7 +91,7 @@ def update_loop(queue):
             print(latest_values)
             queue.put(latest_values)
 
-            time.sleep(3)
+            time.sleep(1)
         except Exception as e:
             print(e)
 
