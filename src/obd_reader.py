@@ -7,9 +7,10 @@ import traceback
 import obd
 import pint
 
-ureg = pint.UnitRegistry()
 
 FUEL_MIXTURE = 14.7
+
+TANK_SIZE_GALLONS = 13.2 * obd.Unit.gallon
 
 GASOLINE_DENSITY = 1.335291761 * obd.Unit.centimeter ** 3 / obd.Unit.gram
 
@@ -33,11 +34,21 @@ def get_fuel_usage():
 
     mpg = distance_per_volume.to('mile/gallon')
 
-    return mpg.m
+    return mpg
 
 
-def get_dte():
-    return random.random() * 400
+def get_dte(current_mpg):
+    fuel = connection.query(obd.commands.FUEL_LEVEL).value.magnitude
+
+    gallons_remaining = fuel * TANK_SIZE_GALLONS
+    print(gallons_remaining)
+
+    dte = gallons_remaining * current_mpg / 100
+
+
+    print(dte)
+
+    return dte
 
 
 def get_mock():
@@ -53,9 +64,9 @@ def read_obd():
     
     current = get_fuel_usage()
     print(current)
-    dta = get_dte()
+    dta = get_dte(current)
 
-    return { 'current': current, 'dte': dta}
+    return { 'current': current.m, 'dte': dta.m}
 
 
 def update_loop(queue):
