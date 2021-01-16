@@ -28,11 +28,11 @@ TEXT_COLOR = 'gray'
 
 class Window(tk.Frame):
 
-    def __init__(self, master, kueue):
+    def __init__(self, master, get_values):
         tk.Frame.__init__(self, master)
         self.master = master
 
-        self.queue = kueue
+        self.get_values = get_values
 
         self.data = {
             'current': tk.DoubleVar(value=FUEL_CONSUMPTION),
@@ -71,9 +71,9 @@ class Window(tk.Frame):
 
     def update_current(self):
 
-        while not self.queue.empty():
-            for key, value in self.queue.get().items():
-                self.data[key].set(value)
+        values = self.get_values()
+        for key, value in values.items():
+            self.data[key].set(value)
 
         self.after(100, self.update_current)
 
@@ -89,17 +89,17 @@ root = tk.Tk()
 
 root.geometry(RESOLUTION)
 
-kueue = queue.Queue()
+reader = obd_reader.Reader()
 
-app = Window(root, kueue)
+app = Window(root, reader.read_obd)
 app.configure(bg=BACKGROUND_COLOR)
 
 app.update_clock()
-app.update_current()
+
+app.after(5000, app.update_current)
 
 
-update_thread = threading.Thread(target=obd_reader.update_loop, args=(kueue,))
-update_thread.start()
+
 
 def sigint_handler(sig, frame):
     root.quit()
