@@ -16,19 +16,31 @@ GASOLINE_DENSITY = 1.335291761 * obd.Unit.centimeter ** 3 / obd.Unit.gram
 
 STATIC_MPG = 25 * obd.Unit.mile / obd.Unit.gallon
 
-connection = None
+USAGE_AVERAGE_COUNT = 10
 
-obd.logger.setLevel(obd.logging.DEBUG)
+
+def weighted_average(items):
+    total = 0
+    total_time = 0
+
+    for index, item in enumerate(items):
+        if index == 0:
+            continue
+
+        previous_time = items[index -1].time
+        time_delta = item.time -previous_time
+        
+        total_time += time_delta
+
+        total += item.value.magnitude * time_delta
+
+    return ( total / time_delta ) * items[-1].value.units
+
+
 
 def get_connection():
     if os.getenv('CARPI_MOCK'):
         return None
-
-    global connection
-
-    if connection:
-        return connection
-
 
 
     print("creating new connection")
@@ -47,20 +59,23 @@ class Reader():
 
         print("watching with connection {}".format(self.connection))
 
-        self.connection.watch(obd.commands.MAF)
-        self.connection.watch(obd.commands.SPEED)
-        self.connection.watch(obd.commands.FUEL_LEVEL)
+        self._fuel_readings = []
+        self._maf_readings = []
+        self._speed_readings = []
+
+        self.connection.watch(obd.commands.MAF, lambda x : self._maf_readings.append(x))
+        self.connection.watch(obd.commands.SPEED, lambda x : self._speed_readings.append(x))
+        self.connection.watch(obd.commands.FUEL_LEVEL, lambda x : self._fuel_readings.append(x))
 
         self.connection.start()
 
-    def get_fuel_usage(self, connection):
-        print("querying with connection {}".format(connection))
-        maf = connection.query(obd.commands.MAF).value
-        print(maf)
-        speed = connection.query(obd.commands.SPEED).value
-        print(speed)
-        fuel_rate = maf / FUEL_MIXTURE
 
+    def get_fuel_usage(self, connection):
+
+        maf = weighted_average(self._maf_readings[-USAGE_AVERAGE_COUNT:])
+        speed = weighted_average(self._speed_readings[-USAGE_AVERAGE_COUNT:])
+
+        fuel_rate = maf / FUEL_MIXTURE 
         fuel_rate_by_volume = fuel_rate * GASOLINE_DENSITY
 
         inverted_fuel_volume = fuel_rate_by_volume ** -1
@@ -73,15 +88,13 @@ class Reader():
 
 
     def get_dte(self, connection, current_mpg):
-        fuel = connection.query(obd.commands.FUEL_LEVEL).value.magnitude
+        fuel = self._fuel_readings[-1].value.magnitude
 
         gallons_remaining = fuel * TANK_SIZE_GALLONS
-        print(gallons_remaining)
 
         dte = gallons_remaining * STATIC_MPG / 100
 
 
-        print(dte)
 
         return dte
 
@@ -97,12 +110,15 @@ class Reader():
         # connection = get_connection()
         # if connection is None:
         #     return self.get_mock()
-        
+
         connection = self.connection
 
         current = self.get_fuel_usage(connection)
         # print(current)
         dta = self.get_dte(connection, current)
+
+        self._fuel_readings = self._fuel_readings[-USAGE_AVERAGE_COUNT:]
+        self._maf_readings = self._maf_readings[-USAGE_AVERAGE_COUNT:]
 
         return { 'current': current.m, 'dte': dta.m}
 

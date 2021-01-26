@@ -71,9 +71,12 @@ class Window(tk.Frame):
 
     def update_current(self):
 
-        values = self.get_values()
-        for key, value in values.items():
-            self.data[key].set(value)
+        try:
+            values = self.get_values()
+            for key, value in values.items():
+                self.data[key].set(value)
+        except Exception as e:
+            print('unable to get values', e)
 
         self.after(100, self.update_current)
 
@@ -96,7 +99,7 @@ app.configure(bg=BACKGROUND_COLOR)
 
 app.update_clock()
 
-app.after(5000, app.update_current)
+app.after(10000, app.update_current)
 
 
 
