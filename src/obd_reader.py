@@ -18,6 +18,24 @@ STATIC_MPG = 25 * obd.Unit.mile / obd.Unit.gallon
 
 USAGE_AVERAGE_COUNT = 10
 
+GEARINGS = [
+    [200, 210], # add a dummy at the front to make indexing line up
+    [127, 155],
+    [70, 75],
+    [49, 53],
+    [39, 43],
+    [32, 36],
+    [27, 29],
+]
+
+def find_gear_from_ratio(ratio):
+    for index, (lower, upper) in enumerate(GEARINGS):
+        if lower < ratio < upper:
+            return index
+
+    return 0
+
+
 
 def weighted_average(items):
     total = 0
@@ -59,13 +77,13 @@ class Reader():
 
         print("watching with connection {}".format(self.connection))
 
-        self._fuel_readings = []
         self._maf_readings = []
         self._speed_readings = []
 
         self.connection.watch(obd.commands.MAF, lambda x : self._maf_readings.append(x))
         self.connection.watch(obd.commands.SPEED, lambda x : self._speed_readings.append(x))
-        self.connection.watch(obd.commands.FUEL_LEVEL, lambda x : self._fuel_readings.append(x))
+        self.connection.watch(obd.commands.FUEL_LEVEL)
+        self.connection.watch(obd.commands.RPM)
 
         self.connection.start()
 
@@ -88,13 +106,11 @@ class Reader():
 
 
     def get_dte(self, connection, current_mpg):
-        fuel = self._fuel_readings[-1].value.magnitude
+        fuel = self.connection.query(obd.commands.FUEL_LEVEL).value.magnitude
 
         gallons_remaining = fuel * TANK_SIZE_GALLONS
 
         dte = gallons_remaining * STATIC_MPG / 100
-
-
 
         return dte
 
@@ -104,12 +120,25 @@ class Reader():
         return { 
             'current': random.random() * 40 + 10,
             'dte':  random.random() * 400,
+            'gear': find_gear_from_ratio(38),
         }
+    
+    def get_gear(self):
+        rpm = self.connection.query(obd.commands.RPM).value
+        speed = self.connection.query(obd.commands.SPEED).value
+
+        try:
+            ratio = rpm / speed
+        except ZeroDivisionError:
+            return 0
+
+        return find_gear_from_ratio(ratio.magnitude)
+
 
     def read_obd(self):
         # connection = get_connection()
-        # if connection is None:
-        #     return self.get_mock()
+        if os.getenv('CARPI_MOCK'):
+            return self.get_mock()
 
         connection = self.connection
 
@@ -117,10 +146,13 @@ class Reader():
         # print(current)
         dta = self.get_dte(connection, current)
 
-        self._fuel_readings = self._fuel_readings[-USAGE_AVERAGE_COUNT:]
+        gear = self.get_gear()
+
+        self._speed_readings = self._speed_readings[-USAGE_AVERAGE_COUNT:]
         self._maf_readings = self._maf_readings[-USAGE_AVERAGE_COUNT:]
 
-        return { 'current': current.m, 'dte': dta.m}
+
+        return { 'current': current.m, 'dte': dta.m, 'gear': gear }
 
 
 

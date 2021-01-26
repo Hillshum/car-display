@@ -37,7 +37,8 @@ class Window(tk.Frame):
         self.data = {
             'current': tk.DoubleVar(value=FUEL_CONSUMPTION),
             'dte': tk.DoubleVar(value=DTE),
-            'temp': tk.DoubleVar(value=TEMP)
+            'temp': tk.DoubleVar(value=TEMP),
+            'gear': tk.DoubleVar(value=0)
         }
 
         default_font = tkFont.nametofont('TkDefaultFont')
@@ -66,6 +67,10 @@ class Window(tk.Frame):
         self.weather = FormatLabel(format="{} °F", textvariable=self.data['temp'], bg=BACKGROUND_COLOR,
             fg=TEXT_COLOR)
         self.weather.pack(expand=1)
+
+        self.gear = FormatLabel(format="{:.0f}", textvariable=self.data['gear'], bg=BACKGROUND_COLOR,
+            fg=TEXT_COLOR)
+        self.gear.pack(expand=1)
 
         self.pack(fill=tk.BOTH, expand=1)
 
