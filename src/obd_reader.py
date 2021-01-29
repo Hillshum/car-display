@@ -18,14 +18,16 @@ STATIC_MPG = 25 * obd.Unit.mile / obd.Unit.gallon
 
 USAGE_AVERAGE_COUNT = 10
 
+RPM_MINIMUM = 900 * obd.Unit.rpm
+
 GEARINGS = [
     [200, 210], # add a dummy at the front to make indexing line up
     [127, 155],
-    [70, 75],
-    [49, 53],
+    [65, 100],
+    [47, 55],
     [39, 43],
     [32, 36],
-    [27, 29],
+    [25, 30],
 ]
 
 def find_gear_from_ratio(ratio):
@@ -127,6 +129,10 @@ class Reader():
         rpm = self.connection.query(obd.commands.RPM).value
         speed = self.connection.query(obd.commands.SPEED).value
 
+        # if rpm < RPM_MINIMUM:
+        #     return 0
+        
+
         try:
             ratio = rpm / speed
         except ZeroDivisionError:
@@ -153,19 +159,4 @@ class Reader():
 
 
         return { 'current': current.m, 'dte': dta.m, 'gear': gear }
-
-
-
-
-
-# def update_loop(queue):
-#     while True:
-#         try:
-#             latest_values = read_obd()
-#             print(latest_values)
-#             queue.put(latest_values)
-
-#             time.sleep(1)
-#         except Exception as e:
-#             print(e)
 

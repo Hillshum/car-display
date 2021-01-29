@@ -3,6 +3,7 @@
 import signal
 import queue
 import random
+import subprocess
 import time
 import threading
 
@@ -24,6 +25,13 @@ TEMP = 81.0
 
 BACKGROUND_COLOR = 'black'
 TEXT_COLOR = 'gray'
+
+
+IP_CMD = r"ip addr show wlan0 | grep -Po 'inet \K[\d.]+'"
+
+def get_ip():
+    p = subprocess.run(IP_CMD, capture_output=True, shell=True)
+    return p.stdout.decode().strip()
 
 
 class Window(tk.Frame):
@@ -68,13 +76,27 @@ class Window(tk.Frame):
             fg=TEXT_COLOR)
         self.weather.pack(expand=1)
 
-        self.gear = FormatLabel(format="{:.0f}", textvariable=self.data['gear'], bg=BACKGROUND_COLOR,
+
+        self.bottom = tk.Frame(master, bg=BACKGROUND_COLOR)
+
+        self.gear = FormatLabel(self.bottom, format="{:.0f}", textvariable=self.data['gear'], bg=BACKGROUND_COLOR,
             fg=TEXT_COLOR)
-        self.gear.pack(expand=1)
+        self.gear.pack(side=tk.LEFT, padx=20)
+
+        self.ip = tk.Label(self.bottom, text="192.168.0", bg=BACKGROUND_COLOR, fg=TEXT_COLOR)
+        self.ip['font'] = 'Arial', 30
+        self.ip.pack(side=tk.RIGHT, padx=20)
+
+        self.bottom.pack(expand=1, fill=tk.X)
 
         self.pack(fill=tk.BOTH, expand=1)
 
     def update_current(self):
+
+        try:
+            self.ip['text'] = get_ip()
+        except Exception as e:
+            print('unable to get ip', e)
 
         try:
             values = self.get_values()
@@ -104,7 +126,7 @@ app.configure(bg=BACKGROUND_COLOR)
 
 app.update_clock()
 
-app.after(10000, app.update_current)
+app.after(300, app.update_current)
 
 
 
