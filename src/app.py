@@ -54,10 +54,18 @@ class Window(tk.Frame):
 
         self.master.title("GUI")
         self.master['bg'] = BACKGROUND_COLOR
-        self.time = FormatLabel(text="")
+
+        self.top = tk.Frame(master, bg=BACKGROUND_COLOR)
+        self.time = FormatLabel(self.top, text="")
         self.time['bg'] = BACKGROUND_COLOR
         self.time['fg'] = TEXT_COLOR
-        self.time.pack(expand=1)
+        self.time.pack(side=tk.LEFT, padx=20)
+
+        self.weather = FormatLabel(self.top, format="{} °F", textvariable=self.data['temp'], bg=BACKGROUND_COLOR,
+            fg=TEXT_COLOR)
+        self.weather.pack(side=tk.RIGHT, padx=20)
+
+        self.top.pack(expand=1)
 
         self.fuel = tk.Frame(master, bg=BACKGROUND_COLOR)
 
@@ -66,15 +74,12 @@ class Window(tk.Frame):
             bg=BACKGROUND_COLOR, format="{:.0f} mi")
         self.dte.pack(side=tk.RIGHT, padx=20)
 
-        self.current = FormatLabel(self.fuel, format="{:.0f} MPG", fg=TEXT_COLOR,
+        self.current = FormatLabel(self.fuel, format="{:3.0f} MPG", fg=TEXT_COLOR,
             textvariable=self.data['current'], bg=BACKGROUND_COLOR)
         self.current.pack(side=tk.LEFT, padx=20)
 
         self.fuel.pack(expand=1)
 
-        self.weather = FormatLabel(format="{} °F", textvariable=self.data['temp'], bg=BACKGROUND_COLOR,
-            fg=TEXT_COLOR)
-        self.weather.pack(expand=1)
 
 
         self.bottom = tk.Frame(master, bg=BACKGROUND_COLOR)
