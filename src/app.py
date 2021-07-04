@@ -46,7 +46,8 @@ class Window(tk.Frame):
             'current': tk.DoubleVar(value=FUEL_CONSUMPTION),
             'dte': tk.DoubleVar(value=DTE),
             'temp': tk.DoubleVar(value=TEMP),
-            'gear': tk.DoubleVar(value=0)
+            'gear': tk.DoubleVar(value=0),
+            'target_rpm': tk.DoubleVar(value=35),
         }
 
         default_font = tkFont.nametofont('TkDefaultFont')
@@ -91,6 +92,10 @@ class Window(tk.Frame):
         self.ip = tk.Label(self.bottom, text="192.168.0", bg=BACKGROUND_COLOR, fg=TEXT_COLOR)
         self.ip['font'] = 'Arial', 30
         self.ip.pack(side=tk.RIGHT, padx=20)
+
+        self.target_rpm = FormatLabel(self.bottom, format="{}", fg=TEXT_COLOR, textvariable=self.data['target_rpm'], bg=BACKGROUND_COLOR)
+
+        self.target_rpm.pack(side=tk.LEFT, padx=20)
 
         self.bottom.pack(expand=1, fill=tk.X)
 
