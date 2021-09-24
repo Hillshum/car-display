@@ -97,7 +97,7 @@ class Reader():
         self.connection.start()
 
     def get_target_rpm(self):
-        return find_rpm_for_gear(self.connection.query(obd.commands.RPM).value.magnitude)
+        return find_rpm_for_gear(self.connection.query(obd.commands.SPEED).value.magnitude, 6)
 
     def get_fuel_usage(self, connection):
 
@@ -133,6 +133,7 @@ class Reader():
             'dte':  random.random() * 400,
             'gear': find_gear_from_ratio(38),
             'target_rpm': find_rpm_for_gear(35, 6),
+            'rpm': 3252,
         }
     
     def get_gear(self):
@@ -166,9 +167,19 @@ class Reader():
 
         target = self.get_target_rpm()
 
+        rpm = self.connection.query(obd.commands.RPM).value.magnitude
+
+
+        print(target)
         self._speed_readings = self._speed_readings[-USAGE_AVERAGE_COUNT:]
         self._maf_readings = self._maf_readings[-USAGE_AVERAGE_COUNT:]
 
 
-        return { 'current': current.m, 'dte': dta.m, 'gear': gear, 'target_rpm':  target}
+        return {
+            'current': current.m,
+            'dte': dta.m,
+            'gear': gear,
+            'target_rpm':  target,
+            'rpm': rpm,
+        }
 

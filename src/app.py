@@ -48,6 +48,7 @@ class Window(tk.Frame):
             'temp': tk.DoubleVar(value=TEMP),
             'gear': tk.DoubleVar(value=0),
             'target_rpm': tk.DoubleVar(value=35),
+            'rpm': tk.IntVar(value=5353),
         }
 
         default_font = tkFont.nametofont('TkDefaultFont')
@@ -83,23 +84,28 @@ class Window(tk.Frame):
 
 
 
-        self.bottom = tk.Frame(master, bg=BACKGROUND_COLOR)
+        self.third = tk.Frame(master, bg=BACKGROUND_COLOR)
 
-        self.gear = FormatLabel(self.bottom, format="{:.0f}", textvariable=self.data['gear'], bg=BACKGROUND_COLOR,
+        self.gear = FormatLabel(self.third, format="{:.0f}", textvariable=self.data['gear'], bg=BACKGROUND_COLOR,
             fg=TEXT_COLOR)
         self.gear.pack(side=tk.LEFT, padx=20)
 
-        self.ip = tk.Label(self.bottom, text="192.168.0", bg=BACKGROUND_COLOR, fg=TEXT_COLOR)
-        self.ip['font'] = 'Arial', 30
-        self.ip.pack(side=tk.RIGHT, padx=20)
 
-        self.target_rpm = FormatLabel(self.bottom, format="{}", fg=TEXT_COLOR, textvariable=self.data['target_rpm'], bg=BACKGROUND_COLOR)
+        self.target_rpm = FormatLabel(self.third, format="{:4.0f}", fg=TEXT_COLOR, textvariable=self.data['target_rpm'], bg=BACKGROUND_COLOR)
 
         self.target_rpm.pack(side=tk.LEFT, padx=20)
 
-        self.bottom.pack(expand=1, fill=tk.X)
+        self.current_rpm = FormatLabel(self.third, format="{:4d}", fg=TEXT_COLOR, textvariable=self.data['rpm'], bg=BACKGROUND_COLOR )
+
+        self.current_rpm.pack(side=tk.LEFT, padx=20)
+
+        self.third.pack(expand=1, fill=tk.X)
 
         self.pack(fill=tk.BOTH, expand=1)
+
+        self.ip = tk.Label(self, text="192.168.0", bg=BACKGROUND_COLOR, fg=TEXT_COLOR)
+        self.ip['font'] = 'Arial', 25
+        self.ip.pack(side=tk.BOTTOM, padx=20)
 
     def update_current(self):
 
