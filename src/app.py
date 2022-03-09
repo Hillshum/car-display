@@ -14,6 +14,7 @@ import tkinter.font as tkFont
 
 import obd_reader
 from format_label import FormatLabel
+import yicam
 
 RESOLUTION = "693x476"
 
@@ -22,6 +23,10 @@ FUEL_CONSUMPTION = 28.400001
 DTE = 208.343
 
 TEMP = 81.0
+
+DASHCAM_UPDATE_DELAY = 10 * 60 * 1000 # 10 minutes
+
+DASHCAM_RETRY_DELAY = 1000 * 10
 
 BACKGROUND_COLOR = 'black'
 TEXT_COLOR = 'gray'
@@ -143,6 +148,18 @@ app.configure(bg=BACKGROUND_COLOR)
 app.update_clock()
 
 app.after(300, app.update_current)
+
+
+def update_dashcam():
+    try:
+        yicam.update_time_calls()
+    except Exception as e:
+        print('unable to update dashcam', e)
+    finally:
+        app.after(DASHCAM_UPDATE_DELAY, update_dashcam)
+
+
+app.after(DASHCAM_UPDATE_DELAY, update_dashcam)
 
 
 
