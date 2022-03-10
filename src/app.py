@@ -24,9 +24,9 @@ DTE = 208.343
 
 TEMP = 81.0
 
-DASHCAM_UPDATE_DELAY = 10 * 60 * 1000 # 10 minutes
+DASHCAM_INITIAL_DELAY = 30 * 1000 # 30 seconds
 
-DASHCAM_RETRY_DELAY = 1000 * 10
+DASHCAM_RETRY_DELAY = 1000 * 60 * 60
 
 BACKGROUND_COLOR = 'black'
 TEXT_COLOR = 'gray'
@@ -156,10 +156,10 @@ def update_dashcam():
     except Exception as e:
         print('unable to update dashcam', e)
     finally:
-        app.after(DASHCAM_UPDATE_DELAY, update_dashcam)
+        app.after(DASHCAM_RETRY_DELAY, update_dashcam)
 
 
-app.after(DASHCAM_UPDATE_DELAY, update_dashcam)
+app.after(DASHCAM_INITIAL_DELAY, update_dashcam)
 
 
 
