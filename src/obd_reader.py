@@ -7,6 +7,7 @@ import traceback
 import obd
 import pint
 
+DEVICE_NAME = '/dev/ttyUSB0'
 
 FUEL_MIXTURE = 14.7
 
@@ -71,7 +72,7 @@ def get_connection():
 
 
     print("creating new connection")
-    connection = obd.Async()
+    connection = obd.Async(DEVICE_NAME)
     print(connection)
 
     return connection
