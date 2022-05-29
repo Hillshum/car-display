@@ -11,10 +11,12 @@ import setproctitle
 
 import tkinter as tk
 import tkinter.font as tkFont
+import pint
 
 import obd_reader
 from format_label import FormatLabel
 import yicam
+import temp
 
 RESOLUTION = "693x476"
 
@@ -31,6 +33,7 @@ DASHCAM_RETRY_DELAY = 1000 * 60 * 60
 BACKGROUND_COLOR = 'black'
 TEXT_COLOR = 'gray'
 
+ureg = pint.UnitRegistry()
 
 IP_CMD = r"ip addr show wlan0 | grep -Po 'inet \K[\d.]+'"
 
@@ -56,6 +59,10 @@ class Window(tk.Frame):
             'rpm': tk.IntVar(value=5353),
         }
 
+        self.temp = {
+            'interior': tk.DoubleVar(value=334),
+        }
+
         default_font = tkFont.nametofont('TkDefaultFont')
         default_font.configure(size=55, family='Arial')
 
@@ -68,7 +75,7 @@ class Window(tk.Frame):
         self.time['fg'] = TEXT_COLOR
         self.time.pack(side=tk.LEFT, padx=20)
 
-        self.weather = FormatLabel(self.top, format="{} °F", textvariable=self.data['temp'], bg=BACKGROUND_COLOR,
+        self.weather = FormatLabel(self.top, format="{:.0f}°F", textvariable=self.temp['interior'], bg=BACKGROUND_COLOR,
             fg=TEXT_COLOR)
         self.weather.pack(side=tk.RIGHT, padx=20)
 
@@ -133,6 +140,20 @@ class Window(tk.Frame):
         self.time.configure(text=now)
         self.after(500, self.update_clock)
 
+    def update_temp(self):
+        try:
+            reading = temp.read_interior()
+            print(reading)
+            interior = reading['internal']
+            deg_c = ureg.Quantity(interior['temp_c'], 'celsius')
+            deg_f = deg_c.to('fahrenheit').magnitude
+            self.temp['interior'].set( deg_f)
+        finally:
+            self.after(600, self.update_temp)
+
+
+
+
 
 setproctitle.setproctitle("carpigui")
 
@@ -146,6 +167,7 @@ app = Window(root, reader.read_obd)
 app.configure(bg=BACKGROUND_COLOR)
 
 app.update_clock()
+app.update_temp()
 
 app.after(300, app.update_current)
 
