@@ -66,16 +66,6 @@ def weighted_average(items):
 
 
 
-def get_connection():
-    if os.getenv('CARPI_MOCK'):
-        return None
-
-
-    print("creating new connection")
-    connection = obd.Async(DEVICE_NAME)
-    print(connection)
-
-    return connection
 
 class Reader():
 
@@ -83,12 +73,28 @@ class Reader():
         if os.getenv('CARPI_MOCK'):
             return
 
-        self.connection = get_connection()
-
-        print("watching with connection {}".format(self.connection))
-
+   
         self._maf_readings = []
         self._speed_readings = []
+
+
+        try:
+            self.connection = self.get_connection()
+        except Exception as e:
+            print(f'Unable to connect to vehicle {e}')
+
+    def get_connection(self):
+        if os.getenv('CARPI_MOCK'):
+            return None
+        
+        if self.connection and self.connection.status() == obd.OBDStatus.CAR_CONNECTED:
+            return self.connection
+
+
+        print("creating new connection")
+        self.connection = obd.Async(DEVICE_NAME)
+
+        print("watching with connection {}".format(self.connection))
 
         self.connection.watch(obd.commands.MAF, lambda x : self._maf_readings.append(x))
         self.connection.watch(obd.commands.SPEED, lambda x : self._speed_readings.append(x))
@@ -97,10 +103,13 @@ class Reader():
 
         self.connection.start()
 
+        return self.connection
+        
+
     def get_target_rpm(self):
         return find_rpm_for_gear(self.connection.query(obd.commands.SPEED).value.magnitude, 6)
 
-    def get_fuel_usage(self, connection):
+    def get_fuel_usage(self):
 
         maf = weighted_average(self._maf_readings[-USAGE_AVERAGE_COUNT:])
         speed = weighted_average(self._speed_readings[-USAGE_AVERAGE_COUNT:])
@@ -117,7 +126,7 @@ class Reader():
         return mpg
 
 
-    def get_dte(self, connection, current_mpg):
+    def get_dte(self):
         fuel = self.connection.query(obd.commands.FUEL_LEVEL).value.magnitude
 
         gallons_remaining = fuel * TANK_SIZE_GALLONS
@@ -154,15 +163,14 @@ class Reader():
 
 
     def read_obd(self):
-        # connection = get_connection()
         if os.getenv('CARPI_MOCK'):
             return self.get_mock()
 
-        connection = self.connection
+        self.get_connection()
 
-        current = self.get_fuel_usage(connection)
+        current = self.get_fuel_usage()
         # print(current)
-        dta = self.get_dte(connection, current)
+        dta = self.get_dte()
 
         gear = self.get_gear()
 
