@@ -51,16 +51,15 @@ class Window(tk.Frame):
         self.get_values = get_values
 
         self.data = {
-            'current': tk.DoubleVar(value=FUEL_CONSUMPTION),
-            'dte': tk.DoubleVar(value=DTE),
-            'temp': tk.DoubleVar(value=TEMP),
-            'gear': tk.DoubleVar(value=0),
-            'target_rpm': tk.DoubleVar(value=35),
-            'rpm': tk.IntVar(value=5353),
+            'current': tk.DoubleVar(),
+            'dte': tk.DoubleVar(),
+            'gear': tk.DoubleVar(),
+            'target_rpm': tk.DoubleVar(),
+            'rpm': tk.IntVar(),
         }
 
         self.temp = {
-            'interior': tk.DoubleVar(value=334),
+            'interior': tk.DoubleVar(),
         }
 
         default_font = tkFont.nametofont('TkDefaultFont')
