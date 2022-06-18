@@ -7,6 +7,7 @@ import traceback
 import obd
 import pint
 
+# obd.logger.setLevel(obd.logging.DEBUG)
 DEVICE_NAME = '/dev/ttyUSB0'
 
 FUEL_MIXTURE = 14.7
@@ -87,12 +88,20 @@ class Reader():
         if os.getenv('CARPI_MOCK'):
             return None
         
-        if self.connection and self.connection.status() == obd.OBDStatus.CAR_CONNECTED:
-            return self.connection
+        print('testing existing connection')
+        try:
+            if self.connection.is_connected():
+                return self.connection
+        except Exception:
+            pass
+        
 
 
         print("creating new connection")
         self.connection = obd.Async(DEVICE_NAME)
+
+        if not self.connection.is_connected():
+            raise Exception("Unable to connect")
 
         print("watching with connection {}".format(self.connection))
 
@@ -102,6 +111,8 @@ class Reader():
         self.connection.watch(obd.commands.RPM)
 
         self.connection.start()
+
+        time.sleep(2)
 
         return self.connection
         
@@ -163,32 +174,36 @@ class Reader():
 
 
     def read_obd(self):
-        if os.getenv('CARPI_MOCK'):
-            return self.get_mock()
+        try:
+            if os.getenv('CARPI_MOCK'):
+                return self.get_mock()
 
-        self.get_connection()
+            self.get_connection()
 
-        current = self.get_fuel_usage()
-        # print(current)
-        dta = self.get_dte()
+            current = self.get_fuel_usage()
+            dta = self.get_dte()
 
-        gear = self.get_gear()
+            gear = self.get_gear()
 
-        target = self.get_target_rpm()
+            target = self.get_target_rpm()
 
-        rpm = self.connection.query(obd.commands.RPM).value.magnitude
-
-
-        print(target)
-        self._speed_readings = self._speed_readings[-USAGE_AVERAGE_COUNT:]
-        self._maf_readings = self._maf_readings[-USAGE_AVERAGE_COUNT:]
+            rpm = self.connection.query(obd.commands.RPM).value.magnitude
 
 
-        return {
-            'current': current.m,
-            'dte': dta.m,
-            'gear': gear,
-            'target_rpm':  target,
-            'rpm': rpm,
-        }
+            self._speed_readings = self._speed_readings[-USAGE_AVERAGE_COUNT:]
+            self._maf_readings = self._maf_readings[-USAGE_AVERAGE_COUNT:]
+
+
+            return {
+                'current': current.m,
+                'dte': dta.m,
+                'gear': gear,
+                'target_rpm':  target,
+                'rpm': rpm,
+            }
+
+        except Exception as e:
+            print(f'Error reading, {e}')
+            # self.connection.close()
+            raise e
 

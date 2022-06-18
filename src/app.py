@@ -33,6 +33,7 @@ DASHCAM_RETRY_DELAY = 1000 * 60 * 60
 BACKGROUND_COLOR = 'black'
 TEXT_COLOR = 'gray'
 
+
 ureg = pint.UnitRegistry()
 
 IP_CMD = r"ip addr show wlan0 | grep -Po 'inet \K[\d.]+'"
@@ -41,6 +42,15 @@ def get_ip():
     p = subprocess.run(IP_CMD, capture_output=True, shell=True)
     return p.stdout.decode().strip()
 
+def INITIAL_DATA():
+    print('creating initial data')
+    return {
+        'current': tk.DoubleVar(),
+        'dte': tk.DoubleVar(),
+        'gear': tk.DoubleVar(),
+        'target_rpm': tk.DoubleVar(),
+        'rpm': tk.IntVar(),
+}
 
 class Window(tk.Frame):
 
@@ -50,13 +60,7 @@ class Window(tk.Frame):
 
         self.get_values = get_values
 
-        self.data = {
-            'current': tk.DoubleVar(),
-            'dte': tk.DoubleVar(),
-            'gear': tk.DoubleVar(),
-            'target_rpm': tk.DoubleVar(),
-            'rpm': tk.IntVar(),
-        }
+        self.data = dict(INITIAL_DATA())
 
         self.temp = {
             'interior': tk.DoubleVar(),
@@ -118,12 +122,16 @@ class Window(tk.Frame):
         self.ip['font'] = 'Arial', 25
         self.ip.pack(side=tk.BOTTOM, padx=20)
 
-    def update_current(self):
-
+    def update_ip(self):
         try:
             self.ip['text'] = get_ip()
         except Exception as e:
             print('unable to get ip', e)
+        
+        finally:
+            self.after(2000, self.update_ip)
+
+    def update_current(self):
 
         try:
             values = self.get_values()
@@ -131,8 +139,13 @@ class Window(tk.Frame):
                 self.data[key].set(value)
         except Exception as e:
             print('unable to get values', e)
+            defaults = INITIAL_DATA()
+            for key, value in self.data.items():
+                self.data[key].set(defaults[key].get())
 
-        self.after(100, self.update_current)
+
+        finally:
+            self.after(100, self.update_current)
 
     def update_clock(self):
         now = time.strftime("%-H:%M", time.localtime())
@@ -167,6 +180,7 @@ app.configure(bg=BACKGROUND_COLOR)
 
 app.update_clock()
 app.update_temp()
+app.update_ip()
 
 app.after(300, app.update_current)
 
