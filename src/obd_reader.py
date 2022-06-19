@@ -1,12 +1,20 @@
 
+from asyncore import read
 import os
 import random
 import time
-import traceback
+import logging
+from logging import handlers
+
+
 
 import obd
 import pint
 
+data_logger = logging.getLogger('obd_data')
+data_logger.setLevel('INFO')
+handler = handlers.TimedRotatingFileHandler('data_logs/obd', when='M', interval=1)
+data_logger.addHandler(handler)
 # obd.logger.setLevel(obd.logging.DEBUG)
 DEVICE_NAME = '/dev/ttyUSB0'
 
@@ -66,6 +74,8 @@ def weighted_average(items):
     return ( total / time_delta ) * items[-1].value.units
 
 
+    
+
 
 
 class Reader():
@@ -74,7 +84,6 @@ class Reader():
         if os.getenv('CARPI_MOCK'):
             return
 
-   
         self._maf_readings = []
         self._speed_readings = []
 
@@ -83,6 +92,16 @@ class Reader():
             self.connection = self.get_connection()
         except Exception as e:
             print(f'Unable to connect to vehicle {e}')
+
+    def command_logger(self, callback=None):
+        def logger(reading):
+            reading_time = time.strftime('%Y-%m-%dT%H:%M:%S', time.gmtime(reading.time))
+            data_logger.info(f'{reading_time} {reading.command.name} {reading.value}')
+            if callback:
+                callback(reading)
+
+        return logger
+
 
     def get_connection(self):
         if os.getenv('CARPI_MOCK'):
@@ -105,10 +124,10 @@ class Reader():
 
         print("watching with connection {}".format(self.connection))
 
-        self.connection.watch(obd.commands.MAF, lambda x : self._maf_readings.append(x))
-        self.connection.watch(obd.commands.SPEED, lambda x : self._speed_readings.append(x))
-        self.connection.watch(obd.commands.FUEL_LEVEL)
-        self.connection.watch(obd.commands.RPM)
+        self.connection.watch(obd.commands.MAF, self.command_logger(lambda x : self._maf_readings.append(x)))
+        self.connection.watch(obd.commands.SPEED, self.command_logger( lambda x : self._speed_readings.append(x)))
+        self.connection.watch(obd.commands.FUEL_LEVEL, self.command_logger())
+        self.connection.watch(obd.commands.RPM, self.command_logger())
 
         self.connection.start()
 
