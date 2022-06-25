@@ -11,6 +11,6 @@ gasoline_density = 1.335291761 * centimeter ** 3 / gram
 @end
 
 @context gasoline
-    [mass] -> [volume] : value * gasoline_density
+    [mass]/[time] -> [volume]/[time] : value * gasoline_density
     [volume] -> [mass] : value / gasoline_density
 @end

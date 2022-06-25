@@ -12,9 +12,9 @@ from logging import handlers
 import obd
 import pint
 
-ureg = obd.Unit()
-Q_ = ureg.Quantity()
-ureg.load_definitions('pint_contexts.txt')
+ureg = obd.Unit
+Q_ = ureg.Quantity
+ureg.load_definitions(os.path.expanduser('~/car-display/src/pint_contexts.txt'))
 
 data_logger = logging.getLogger('obd_data')
 data_logger.setLevel('INFO')
@@ -150,7 +150,7 @@ class Reader():
         speed = weighted_average(self._speed_readings[-USAGE_AVERAGE_COUNT:])
 
         fuel_rate = maf / FUEL_MIXTURE 
-        fuel_rate_by_volume = fuel_rate.to('gallon', 'gasoline')
+        fuel_rate_by_volume = fuel_rate.to('gallon/second', 'gasoline')
 
         inverted_fuel_volume = fuel_rate_by_volume ** -1
 
@@ -162,7 +162,7 @@ class Reader():
 
 
     def get_dte(self):
-        fuel = self.connection.query(obd.commands.FUEL_LEVEL).value.magnitude
+        fuel = self.connection.query(obd.commands.FUEL_LEVEL).value
 
         gallons_remaining = fuel.to('gallons', 'versa')
 
