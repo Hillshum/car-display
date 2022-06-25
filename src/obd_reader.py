@@ -13,7 +13,7 @@ import pint
 
 data_logger = logging.getLogger('obd_data')
 data_logger.setLevel('INFO')
-handler = handlers.TimedRotatingFileHandler('data_logs/obd', when='M', interval=1)
+handler = handlers.TimedRotatingFileHandler('data_logs/obd', when='M', interval=20)
 data_logger.addHandler(handler)
 # obd.logger.setLevel(obd.logging.DEBUG)
 DEVICE_NAME = '/dev/ttyUSB0'
