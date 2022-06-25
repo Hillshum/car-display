@@ -3,6 +3,7 @@ from asyncore import read
 import os
 import random
 import time
+import datetime
 import logging
 from logging import handlers
 
@@ -95,8 +96,8 @@ class Reader():
 
     def command_logger(self, callback=None):
         def logger(reading):
-            reading_time = time.strftime('%Y-%m-%dT%H:%M:%S', time.gmtime(reading.time))
-            data_logger.info(f'{reading_time} {reading.command.name} {reading.value}')
+            dt = datetime.datetime.fromtimestamp(reading.time)
+            data_logger.info(f'{dt.isoformat()} {reading.command.name} {reading.value}')
             if callback:
                 callback(reading)
 
