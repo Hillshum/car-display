@@ -12,6 +12,10 @@ from logging import handlers
 import obd
 import pint
 
+ureg = obd.Unit()
+Q_ = ureg.Quantity()
+ureg.load_definitions('pint_contexts.txt')
+
 data_logger = logging.getLogger('obd_data')
 data_logger.setLevel('INFO')
 handler = handlers.TimedRotatingFileHandler('data_logs/obd', when='M', interval=20)
@@ -21,11 +25,11 @@ DEVICE_NAME = '/dev/ttyUSB0'
 
 FUEL_MIXTURE = 14.7
 
-TANK_SIZE_GALLONS = 13.2 * obd.Unit.gallon
+# TANK_SIZE_GALLONS = 13.2 * obd.Unit.gallon
 
-GASOLINE_DENSITY = 1.335291761 * obd.Unit.centimeter ** 3 / obd.Unit.gram
+# GASOLINE_DENSITY = 1.335291761 * obd.Unit.centimeter ** 3 / obd.Unit.gram
 
-STATIC_MPG = 25 * obd.Unit.mile / obd.Unit.gallon
+# STATIC_MPG = 25 * obd.Unit.mile / obd.Unit.gallon
 
 USAGE_AVERAGE_COUNT = 10
 
@@ -146,7 +150,7 @@ class Reader():
         speed = weighted_average(self._speed_readings[-USAGE_AVERAGE_COUNT:])
 
         fuel_rate = maf / FUEL_MIXTURE 
-        fuel_rate_by_volume = fuel_rate * GASOLINE_DENSITY
+        fuel_rate_by_volume = fuel_rate.to('gallon', 'gasoline')
 
         inverted_fuel_volume = fuel_rate_by_volume ** -1
 
@@ -160,9 +164,9 @@ class Reader():
     def get_dte(self):
         fuel = self.connection.query(obd.commands.FUEL_LEVEL).value.magnitude
 
-        gallons_remaining = fuel * TANK_SIZE_GALLONS
+        gallons_remaining = fuel.to('gallons', 'versa')
 
-        dte = gallons_remaining * STATIC_MPG / 100
+        dte = gallons_remaining.to('miles', 'versa')
 
         return dte
 

@@ -1,0 +1,16 @@
+
+versa_tank = 13.2 * gallon
+
+gasoline_density = 1.335291761 * centimeter ** 3 / gram
+
+@context(mpg=25) versa
+    [] -> [volume] : value /100 * versa_tank
+    [volume] -> [] : value / versa_tank * 100
+    [volume] -> [length] : value * mpg * mile / gallon
+    [length] -> [volume] : value / mpg * gallon / mile
+@end
+
+@context gasoline
+    [mass] -> [volume] : value * gasoline_density
+    [volume] -> [mass] : value / gasoline_density
+@end
