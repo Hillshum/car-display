@@ -133,6 +133,7 @@ class Reader():
         self.connection.watch(obd.commands.SPEED, self.command_logger( lambda x : self._speed_readings.append(x)))
         self.connection.watch(obd.commands.FUEL_LEVEL, self.command_logger())
         self.connection.watch(obd.commands.RPM, self.command_logger())
+        self.connection.watch(obd.commands.COMMANDED_EQUIV_RATIO, self.command_logger())
 
         self.connection.start()
 
