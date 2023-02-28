@@ -6,6 +6,7 @@ import random
 import subprocess
 import time
 import threading
+from math import nan
 
 import setproctitle
 
@@ -161,6 +162,8 @@ class Window(tk.Frame):
             deg_c = ureg.Quantity(interior['temp_c'], 'celsius')
             deg_f = deg_c.to('fahrenheit').magnitude
             self.temp['interior'].set( deg_f)
+        except:
+            self.temp['interior'].set(nan)
         finally:
             self.after(600, self.update_temp)
 
