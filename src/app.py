@@ -50,6 +50,7 @@ def INITIAL_DATA():
         'gear': tk.DoubleVar(),
         'target_rpm': tk.DoubleVar(),
         'rpm': tk.IntVar(),
+        'coolant_temp': tk.DoubleVar(),
 }
 
 class Window(tk.Frame):
@@ -106,9 +107,9 @@ class Window(tk.Frame):
         self.gear.pack(side=tk.LEFT, padx=20)
 
 
-        self.target_rpm = FormatLabel(self.third, format="{:4.0f}", fg=TEXT_COLOR, textvariable=self.data['target_rpm'], bg=BACKGROUND_COLOR)
+        self.coolant_temp = FormatLabel(self.third, format="{:2.0f}°C", fg=TEXT_COLOR, textvariable=self.data['coolant_temp'], bg=BACKGROUND_COLOR)
 
-        self.target_rpm.pack(side=tk.LEFT, padx=20)
+        self.coolant_temp.pack(side=tk.RIGHT, padx=20)
 
         self.current_rpm = FormatLabel(self.third, format="{:4d}", fg=TEXT_COLOR, textvariable=self.data['rpm'], bg=BACKGROUND_COLOR )
 
