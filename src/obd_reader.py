@@ -1,5 +1,3 @@
-
-from asyncore import read
 import os
 import random
 import time
