@@ -132,6 +132,7 @@ class Reader():
         self.connection.watch(obd.commands.FUEL_LEVEL, self.command_logger())
         self.connection.watch(obd.commands.RPM, self.command_logger())
         self.connection.watch(obd.commands.COMMANDED_EQUIV_RATIO, self.command_logger())
+        self.connection.watch(obd.commands.COOLANT_TEMP, self.command_logger())
 
         self.connection.start()
 
@@ -210,6 +211,8 @@ class Reader():
 
             target = self.get_target_rpm()
 
+            coolant_temp = self.connection.query(obd.commands.COOLANT_TEMP).value.magnitude
+
             rpm = self.connection.query(obd.commands.RPM).value.magnitude
 
 
@@ -223,6 +226,7 @@ class Reader():
                 'gear': gear,
                 'target_rpm':  target,
                 'rpm': rpm,
+                'coolant_temp': coolant_temp,
             }
 
         except Exception as e:

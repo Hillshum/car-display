@@ -6,6 +6,7 @@ import random
 import subprocess
 import time
 import threading
+from math import nan
 
 import setproctitle
 
@@ -50,6 +51,7 @@ def INITIAL_DATA():
         'gear': tk.DoubleVar(),
         'target_rpm': tk.DoubleVar(),
         'rpm': tk.IntVar(),
+        'coolant_temp': tk.DoubleVar(),
 }
 
 class Window(tk.Frame):
@@ -78,14 +80,9 @@ class Window(tk.Frame):
         self.time['fg'] = TEXT_COLOR
         self.time.pack(side=tk.LEFT, padx=20)
 
-        self.weather = FormatLabel(self.top, format="{:.0f}°F", textvariable=self.temp['interior'], bg=BACKGROUND_COLOR,
-            fg=TEXT_COLOR)
-        self.weather.pack(side=tk.RIGHT, padx=20)
-
         self.top.pack(expand=1)
 
         self.fuel = tk.Frame(master, bg=BACKGROUND_COLOR)
-
 
         self.dte = FormatLabel(self.fuel, textvariable=self.data['dte'], fg=TEXT_COLOR,
             bg=BACKGROUND_COLOR, format="{:.0f} mi")
@@ -97,18 +94,15 @@ class Window(tk.Frame):
 
         self.fuel.pack(expand=1)
 
-
-
         self.third = tk.Frame(master, bg=BACKGROUND_COLOR)
 
         self.gear = FormatLabel(self.third, format="{:.0f}", textvariable=self.data['gear'], bg=BACKGROUND_COLOR,
             fg=TEXT_COLOR)
         self.gear.pack(side=tk.LEFT, padx=20)
 
+        self.coolant_temp = FormatLabel(self.third, format="{:2.0f}°C", fg=TEXT_COLOR, textvariable=self.data['coolant_temp'], bg=BACKGROUND_COLOR)
 
-        self.target_rpm = FormatLabel(self.third, format="{:4.0f}", fg=TEXT_COLOR, textvariable=self.data['target_rpm'], bg=BACKGROUND_COLOR)
-
-        self.target_rpm.pack(side=tk.LEFT, padx=20)
+        self.coolant_temp.pack(side=tk.RIGHT, padx=20)
 
         self.current_rpm = FormatLabel(self.third, format="{:4d}", fg=TEXT_COLOR, textvariable=self.data['rpm'], bg=BACKGROUND_COLOR )
 
@@ -127,7 +121,7 @@ class Window(tk.Frame):
             self.ip['text'] = get_ip()
         except Exception as e:
             print('unable to get ip', e)
-        
+
         finally:
             self.after(2000, self.update_ip)
 
@@ -143,12 +137,11 @@ class Window(tk.Frame):
             for key, value in self.data.items():
                 self.data[key].set(defaults[key].get())
 
-
         finally:
             self.after(100, self.update_current)
 
     def update_clock(self):
-        now = time.strftime("%-H:%M", time.localtime())
+        now = time.strftime("%-I:%M %p", time.localtime())
         self.time.configure(text=now)
         self.after(500, self.update_clock)
 
@@ -160,11 +153,10 @@ class Window(tk.Frame):
             deg_c = ureg.Quantity(interior['temp_c'], 'celsius')
             deg_f = deg_c.to('fahrenheit').magnitude
             self.temp['interior'].set( deg_f)
+        except:
+            self.temp['interior'].set(nan)
         finally:
             self.after(600, self.update_temp)
-
-
-
 
 
 setproctitle.setproctitle("carpigui")
@@ -197,12 +189,9 @@ def update_dashcam():
 app.after(DASHCAM_INITIAL_DELAY, update_dashcam)
 
 
-
-
 def sigint_handler(sig, frame):
     root.quit()
     root.update()
 
 signal.signal(signal.SIGINT, sigint_handler)
 root.mainloop()
-
