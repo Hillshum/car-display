@@ -88,7 +88,6 @@ class Window(tk.Frame):
 
         self.fuel = tk.Frame(master, bg=BACKGROUND_COLOR)
 
-
         self.dte = FormatLabel(self.fuel, textvariable=self.data['dte'], fg=TEXT_COLOR,
             bg=BACKGROUND_COLOR, format="{:.0f} mi")
         self.dte.pack(side=tk.RIGHT, padx=20)
@@ -99,14 +98,11 @@ class Window(tk.Frame):
 
         self.fuel.pack(expand=1)
 
-
-
         self.third = tk.Frame(master, bg=BACKGROUND_COLOR)
 
         self.gear = FormatLabel(self.third, format="{:.0f}", textvariable=self.data['gear'], bg=BACKGROUND_COLOR,
             fg=TEXT_COLOR)
         self.gear.pack(side=tk.LEFT, padx=20)
-
 
         self.coolant_temp = FormatLabel(self.third, format="{:2.0f}°C", fg=TEXT_COLOR, textvariable=self.data['coolant_temp'], bg=BACKGROUND_COLOR)
 
@@ -129,7 +125,7 @@ class Window(tk.Frame):
             self.ip['text'] = get_ip()
         except Exception as e:
             print('unable to get ip', e)
-        
+
         finally:
             self.after(2000, self.update_ip)
 
@@ -144,7 +140,6 @@ class Window(tk.Frame):
             defaults = INITIAL_DATA()
             for key, value in self.data.items():
                 self.data[key].set(defaults[key].get())
-
 
         finally:
             self.after(100, self.update_current)
@@ -166,9 +161,6 @@ class Window(tk.Frame):
             self.temp['interior'].set(nan)
         finally:
             self.after(600, self.update_temp)
-
-
-
 
 
 setproctitle.setproctitle("carpigui")
@@ -201,12 +193,9 @@ def update_dashcam():
 app.after(DASHCAM_INITIAL_DELAY, update_dashcam)
 
 
-
-
 def sigint_handler(sig, frame):
     root.quit()
     root.update()
 
 signal.signal(signal.SIGINT, sigint_handler)
 root.mainloop()
-
