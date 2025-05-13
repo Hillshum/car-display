@@ -141,7 +141,7 @@ class Window(tk.Frame):
             self.after(100, self.update_current)
 
     def update_clock(self):
-        now = time.strftime("%-H:%M", time.localtime())
+        now = time.strftime("%-I:%M %p", time.localtime())
         self.time.configure(text=now)
         self.after(500, self.update_clock)
 
