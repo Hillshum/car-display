@@ -80,10 +80,6 @@ class Window(tk.Frame):
         self.time['fg'] = TEXT_COLOR
         self.time.pack(side=tk.LEFT, padx=20)
 
-        self.weather = FormatLabel(self.top, format="{:.0f}°F", textvariable=self.temp['interior'], bg=BACKGROUND_COLOR,
-            fg=TEXT_COLOR)
-        self.weather.pack(side=tk.RIGHT, padx=20)
-
         self.top.pack(expand=1)
 
         self.fuel = tk.Frame(master, bg=BACKGROUND_COLOR)
